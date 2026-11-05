@@ -56,6 +56,9 @@ main{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:
 main.wlist{display:block;max-width:780px;padding-top:12px}
 .witem{display:flex;align-items:center;gap:8px 18px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px}
 .witem:hover{background:rgba(255,255,255,.025)}
+.wchk{flex:1;min-width:0;display:flex;align-items:center;gap:12px;cursor:pointer}
+.wchk input{flex:none;width:20px;height:20px;margin:0;accent-color:var(--ok);cursor:pointer}
+.witem.done .wt{color:var(--mut);text-decoration:line-through;text-decoration-color:rgba(154,154,162,.6)}
 .witem .wt{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .witem .wt small{font-weight:400;color:var(--mut);font-size:13px;margin-left:6px}
 .witem a,.witem button{background:none;border:0;padding:0;color:var(--mut);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
@@ -175,7 +178,8 @@ html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%
   #det{width:96%;max-height:92vh;max-height:92dvh}
   main{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:22px 12px}
   .witem{flex-wrap:wrap}
-  .witem .wt{flex-basis:100%;white-space:normal}
+  .witem .wchk{flex-basis:100%}
+  .witem .wt{white-space:normal}
   .stats{margin-left:0;width:100%}
   .dwrap{grid-template-columns:1fr;padding:22px;gap:20px}
   .dposter{width:150px}
@@ -420,8 +424,8 @@ function inLib(w,kind){
     &&(!w.year||!it.year||Math.abs(w.year-it.year)<=1));
 }
 function witem(w,kind){
-  return `<div class="witem" data-id="${esc(w.id)}">
-    <span class="wt">${esc(w.title)}${w.year?`<small>${w.year}</small>`:''}</span>
+  return `<div class="witem ${w.done?'done':''}" data-id="${esc(w.id)}">
+    <label class="wchk"><input type="checkbox" id="chk-${esc(w.id)}" data-a="done" ${w.done?'checked':''}><span class="wt">${esc(w.title)}${w.year?`<small>${w.year}</small>`:''}</span></label>
     ${inLib(w,kind)?`<button class="inplex" data-a="plex" title="Abrir en tu biblioteca">✓ Ya en tu Plex</button>`:''}
     <a href="${faUrl(w.title)}" target="_blank" rel="noopener">FilmAffinity ↗</a>
     <button data-a="edit">Editar</button>
@@ -441,7 +445,8 @@ function renderWish(){
     plex:(a,b)=>!!inLib(b,kind)-!!inLib(a,kind)||b.added-a.added};
   list.sort(sorters[o]);
   const nP=all.filter(w=>inLib(w,kind)).length;
-  $('stats').textContent=all.length?`${list.length} ${list.length===1?"título":"títulos"}${nP?` · ${nP} ya en tu Plex`:''}`:'';
+  const nD=all.filter(w=>w.done).length;
+  $('stats').textContent=all.length?`${list.length} ${list.length===1?"título":"títulos"}${nD?` · ${nD} marcados`:''}${nP?` · ${nP} ya en tu Plex`:''}`:'';
   $('grid').className='wlist';
   $('grid').innerHTML=all.length?(list.map(w=>witem(w,kind)).join('')||'<div class="empty">Nada coincide con la búsqueda.</div>')
     :`<div class="empty">Aún no tienes ${kind==='movies'?'películas':'series'} apuntadas.<br>Pulsa <b>+ Añadir</b> para apuntar una o pegar tu lista entera.</div>`;
@@ -558,6 +563,12 @@ $('grid').addEventListener('click',e=>{
     const it=inLib(w,kind);setTab(kind);
     const i=VIEW.findIndex(x=>x.key===it.key);if(i>=0)openDet(i);
   }
+});
+$('grid').addEventListener('change',e=>{
+  if(e.target.dataset.a!=='done')return;
+  const c=e.target.closest('.witem'),w=S.wish[wkind()].find(x=>x.id===c?.dataset.id);if(!w)return;
+  if(e.target.checked)w.done=true;else delete w.done;
+  save();render();
 });
 $('det').addEventListener('click',e=>{
   if(e.target===$('det')||e.target.id==='dx')return $('det').close();
