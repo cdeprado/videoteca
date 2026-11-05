@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Videoteca</title>
+<style>
+:root{color-scheme:dark;--bg:#0e0e10;--fg:#f2f2f3;--mut:#9a9aa2;--line:#26262b;--soft:#1b1b1f;--acc:#e5a00d;--ok:#3fb950}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1400px;margin:0 auto;padding:0 32px}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 70%,rgba(14,14,16,0));padding-bottom:6px}
+.top{display:flex;align-items:center;gap:32px;padding-top:20px;flex-wrap:wrap}
+h1{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0;color:var(--acc)}
+.tabs{display:flex;gap:8px 22px;flex-wrap:wrap;align-items:center}
+.tab{background:none;border:0;padding:4px 0;font:inherit;color:var(--mut);cursor:pointer;font-weight:500}
+.tab:hover{color:var(--fg)}.tab.on{color:var(--fg);font-weight:700}
+.tab b{font-weight:400;color:var(--mut);font-size:12px;margin-left:4px}
+.tsep{color:var(--mut);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding-left:22px;border-left:1px solid var(--line);line-height:22px}
+.hright{margin-left:auto;display:flex;gap:18px;align-items:center}
+.net{font-size:12.5px;white-space:nowrap}.net.ok{color:var(--ok)}.net.bad{color:#f85149}
+.link{background:none;border:0;color:var(--mut);font:inherit;font-size:14px;cursor:pointer}
+.link:hover{color:var(--fg)}
+.tools{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:16px 0 4px}
+#q{flex:1;min-width:220px;max-width:420px;border:1px solid var(--line);background:var(--soft);color:var(--fg);border-radius:8px;padding:9px 14px;font:inherit;outline:none}
+#q:focus{border-color:#444}
+select{border:0;background:none;color:var(--mut);font:inherit;font-size:14px;cursor:pointer;padding:6px 0}
+select option{background:var(--soft);color:var(--fg)}
+select:hover,select:focus{color:var(--fg);outline:none}
+.stats{color:var(--mut);font-size:13px;margin-left:auto}
+body.wish .lib{display:none}
+body:not(.wish) .wl{display:none!important}
+main{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:28px 18px;padding:20px 0 70px}
+.tile{cursor:pointer}
+.poster{position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background-size:cover;background-position:center;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);transition:transform .2s ease,box-shadow .2s ease}
+.tile:hover .poster{transform:scale(1.04);box-shadow:0 14px 34px rgba(0,0,0,.6)}
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;
+  background:linear-gradient(transparent 40%,rgba(0,0,0,.55));font-weight:700;font-size:16px;line-height:1.2;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.ph small{font-weight:400;font-size:12px;opacity:.8;margin-top:4px}
+.badge{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--ok);display:grid;place-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.badge::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.fab{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.72);color:var(--acc);font-weight:700;font-size:12px;padding:2px 7px;border-radius:5px}
+.run{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.2)}
+.run i{display:block;height:100%;background:var(--acc)}
+.tile.seen .poster{filter:saturate(.5) brightness(.75)}
+.tile.seen:hover .poster{filter:none}
+.cap{margin-top:9px;font-size:13.5px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cap small{display:block;font-weight:400;font-size:12px;color:var(--mut)}
+.empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:90px 20px;line-height:1.7}
+
+/* Listas "por añadir" */
+main.wlist{display:block;max-width:780px;padding-top:12px}
+.witem{display:flex;align-items:center;gap:8px 18px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px}
+.witem:hover{background:rgba(255,255,255,.025)}
+.witem .wt{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.witem .wt small{font-weight:400;color:var(--mut);font-size:13px;margin-left:6px}
+.witem a,.witem button{background:none;border:0;padding:0;color:var(--mut);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.witem a:hover,.witem button:hover{color:var(--fg)}
+.witem .del{font-size:18px;line-height:1;width:22px}
+.witem .del:hover,.witem .del.sure{color:#f85149}
+.witem .del.sure{font-size:13px;width:auto;font-weight:600}
+.witem .inplex{background:rgba(63,185,80,.15);color:var(--ok);border-radius:5px;font-size:12px;font-weight:600;padding:2px 8px}
+.witem .inplex:hover{background:rgba(63,185,80,.25);color:var(--ok)}
+
+/* Ficha de detalle */
+#det{max-width:880px;width:94%;max-height:90vh;padding:0;border:0;border-radius:14px;background:#141417;color:var(--fg);overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.7)}
+#det::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(3px)}
+.dwrap{position:relative;display:grid;grid-template-columns:250px 1fr;gap:32px;padding:32px;overflow:hidden}
+.dbg{position:absolute;inset:-40px;opacity:.28;filter:blur(50px);z-index:0}
+.dwrap>*:not(.dbg){position:relative;z-index:1}
+.dposter{position:relative;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background-size:cover;background-position:center;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.dt{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.15;padding-right:30px}
+.do{color:var(--mut);font-size:15px;margin-top:4px}
+.dm{color:#c4c4ca;font-size:14px;margin-top:10px}
+.dscore{display:flex;gap:26px;align-items:center;margin-top:22px;flex-wrap:wrap}
+.sc{text-align:center;line-height:1.1}
+.sc input,.sc .v{width:62px;border:0;background:none;color:var(--fg);font:inherit;font-size:30px;font-weight:700;text-align:center;padding:0}
+.sc input::placeholder{color:#555}
+.sc input:focus{outline:none;border-bottom:2px solid var(--acc)}
+.sc .v{color:#c4c4ca;font-weight:500}
+.sc a,.sc span{display:block;font-size:10.5px;color:var(--mut);text-decoration:none;letter-spacing:.05em;text-transform:uppercase;margin-top:3px}
+.sc a:hover{color:var(--acc)}
+.toggle{border:1.5px solid #555;background:none;color:var(--fg);border-radius:22px;padding:9px 18px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.toggle:hover{border-color:var(--ok)}
+.toggle.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.toggle.wait:hover{border-color:#4d8ff0}
+.toggle.wait.on{background:#2f6fdb;border-color:#2f6fdb}
+.wbadge{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.75);color:#cfd6e4;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:5px}
+.wbadge.new{background:var(--acc);color:#111}
+.wbadge+.fab{top:36px}
+.tile.seen.newseason .poster{filter:none}
+.dwait{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;margin-top:14px;font-size:13.5px;color:var(--mut)}
+.dwait input{flex:1;min-width:220px;background:rgba(0,0,0,.25);border:1px solid var(--line);color:var(--fg);border-radius:7px;padding:7px 10px;font:inherit;font-size:13.5px;outline:none}
+.dwait input:focus{border-color:#555}
+.dwait .new{color:var(--acc);font-weight:600}
+.dwait button{background:none;border:0;padding:0;color:var(--mut);font:inherit;font-size:13.5px;cursor:pointer;text-decoration:underline}
+.dwait button:hover{color:var(--fg)}
+.dprog{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:13px;color:var(--mut)}
+.dprog div{width:180px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
+.dprog i{display:block;height:100%;background:var(--acc)}
+.dsyn{font-size:15.5px;line-height:1.7;color:#e0e0e4;margin:22px 0 18px}
+.dcr{font-size:13.5px;color:var(--mut);margin:4px 0}.dcr b{color:#c4c4ca;font-weight:600}
+.x{position:absolute;top:14px;right:16px;z-index:2;background:rgba(0,0,0,.4);border:0;color:var(--fg);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer}
+.x:hover{background:rgba(255,255,255,.15)}
+.dnav{display:flex;justify-content:space-between;padding:0 32px 22px;position:relative;z-index:1}
+.dnav button{background:none;border:0;color:var(--mut);font:inherit;font-size:14px;cursor:pointer;padding:6px 0}
+.dnav button:hover{color:var(--fg)}
+.dnav span{color:var(--mut);font-size:12px;align-self:center}
+
+/* Lista de capítulos */
+.deps{grid-column:1/-1;margin-top:-6px}
+.dh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.dh span{text-transform:none;letter-spacing:0;font-weight:400;font-size:13px}
+.dnote{font-size:13.5px;color:var(--mut);margin:4px 0}
+.season{border-top:1px solid var(--line)}
+.season:last-child{border-bottom:1px solid var(--line)}
+.season summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;padding:12px 0;font-weight:600;font-size:15px}
+.season summary::-webkit-details-marker{display:none}
+.season summary::before{content:"›";display:inline-block;width:10px;color:var(--mut);transition:transform .15s}
+.season[open] summary::before{transform:rotate(90deg)}
+.season summary span{margin-left:auto;font-weight:400;color:var(--mut);font-size:13px;text-align:right}
+.season summary:hover{color:#fff}
+.ep{display:grid;grid-template-columns:34px 1fr auto 18px;gap:12px;align-items:center;padding:7px 0 7px 20px;font-size:14px;border-top:1px solid rgba(255,255,255,.04)}
+.ep:last-child{margin-bottom:10px}
+.ep .n{color:var(--mut);font-variant-numeric:tabular-nums;text-align:right}
+.ep .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ep .d{color:var(--mut);font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
+.ep .s{width:16px;height:16px;border-radius:50%;border:1.5px solid #444;display:grid;place-content:center}
+.ep.seen .t{color:var(--mut)}
+.ep.seen .s{background:var(--ok);border-color:var(--ok)}
+.ep.seen .s::after{content:"";width:3px;height:7px;border:solid #fff;border-width:0 1.5px 1.5px 0;transform:translateY(-1px) rotate(45deg)}
+.ep.run .s{border-color:var(--acc);background:conic-gradient(var(--acc) var(--p,50%),transparent 0)}
+
+/* Diálogos */
+.panel{background:#16161a;color:var(--fg);border:1px solid var(--line);border-radius:14px;max-width:560px;width:92%;padding:28px;max-height:88vh;max-height:88dvh;overflow:auto;-webkit-overflow-scrolling:touch}
+.panel::backdrop{background:rgba(0,0,0,.6)}
+.panel h2{margin:0 0 14px;font-size:18px}
+.panel h3{font-size:12px;font-weight:600;margin:22px 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.panel p{font-size:13px;color:var(--mut);margin:2px 0 8px}
+.panel code{font-size:12px;color:#c4c4ca}
+.panel textarea,.panel input[type=text],.panel input[type=password]{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 11px;font:inherit;font-size:14px;margin-bottom:8px;outline:none;resize:vertical}
+.panel textarea:focus,.panel input:focus{border-color:#444}
+#paste,#faJson,#tok{font:12px ui-monospace,monospace}
+.panel summary{cursor:pointer;color:var(--mut);font-size:13px;margin:14px 0 8px}
+.panel summary:hover{color:var(--fg)}
+.wrow{display:flex;gap:8px}
+.wrow input:first-child{flex:1}
+.btn{background:var(--fg);color:var(--bg);border:0;border-radius:7px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn.ghost{background:none;color:var(--mut);border:1px solid var(--line);font-weight:400}
+.msg{font-size:13px;margin-top:14px;min-height:18px;color:var(--ok)}
+.foot{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+/* Safari antiguo (iOS < 15.4) no tiene ventanas <dialog>: se simulan */
+dialog:not([open]){display:none}
+html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);margin:0;z-index:100;box-shadow:0 0 0 100vmax rgba(0,0,0,.7)}
+@media (max-width:680px){
+  .wrap{padding:0 16px}
+  header{position:static;background:var(--bg)}
+  .top{gap:10px 16px;padding-top:14px}
+  h1{font-size:20px}
+  .tabs{order:3;flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;gap:18px;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -16px;padding:2px 16px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{white-space:nowrap;font-size:15px}
+  .tsep{padding-left:16px;font-size:10px;white-space:nowrap}
+  .hright{gap:14px}
+  .link{font-size:15px;padding:6px 0}
+  .tools{gap:8px 14px;padding-top:12px}
+  #q{flex:1 0 100%;max-width:none}
+  /* letra de 16px en las casillas: así el iPhone no hace zoom al tocarlas */
+  #q,select,.panel textarea,.panel input[type=text],.panel input[type=password],.dwait input,.sc input{font-size:16px!important}
+  .panel{width:94%;padding:20px}
+  #det{width:96%;max-height:92vh;max-height:92dvh}
+  main{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:22px 12px}
+  .witem{flex-wrap:wrap}
+  .witem .wt{flex-basis:100%;white-space:normal}
+  .stats{margin-left:0;width:100%}
+  .dwrap{grid-template-columns:1fr;padding:22px;gap:20px}
+  .dposter{width:150px}
+  .dt{font-size:22px}
+  .dnav{padding:0 22px 18px}
+  .ep{grid-template-columns:26px 1fr auto 16px;gap:10px;padding-left:8px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Videoteca</h1>
+      <div class="tabs">
+        <button class="tab on" data-t="movies">Películas<b id="cm"></b></button>
+        <button class="tab" data-t="shows">Series<b id="cs"></b></button>
+        <span class="tsep">Por añadir</span>
+        <button class="tab" data-t="wmovies">Películas<b id="cwm"></b></button>
+        <button class="tab" data-t="wshows">Series<b id="cws"></b></button>
+      </div>
+      <div class="hright"><span class="net" id="net" hidden></span><button class="link" id="cfg">Datos</button></div>
+    </div>
+    <div class="tools">
+      <input type="search" id="q" placeholder="Buscar por título, actor o director">
+      <select id="f" class="lib">
+        <option value="all">Todas</option><option value="pending">Pendientes</option>
+        <option value="run">A medias</option><option value="seen">Vistas</option><option value="wait">Esperando temporada</option>
+      </select>
+      <select id="g" class="lib"></select>
+      <select id="o" class="lib">
+        <option value="title">A–Z</option><option value="added">Recientes</option>
+        <option value="year">Año</option><option value="fa">Nota FilmAffinity</option>
+        <option value="ar">Nota Plex</option>
+      </select>
+      <select id="wo" class="wl">
+        <option value="added">Recientes</option><option value="title">A–Z</option><option value="plex">Ya en Plex primero</option>
+      </select>
+      <button class="btn wl" id="wadd">+ Añadir</button>
+      <span class="stats" id="stats"></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap"><main id="grid"></main></div>
+
+<dialog id="det">
+  <button class="x" id="dx" title="Cerrar (Esc)">×</button>
+  <div class="dwrap" id="dbody"></div>
+  <div class="dnav"><button id="dprev">‹ Anterior</button><span id="dpos"></span><button id="dnext">Siguiente ›</button></div>
+</dialog>
+
+<dialog id="wdlg" class="panel">
+  <h2 id="wh">Añadir</h2>
+  <p id="whelp">Escribe un título o pega varios desde tu nota, uno por línea. Si sabes el año, ponlo entre paréntesis: <code>Anora (2024)</code></p>
+  <textarea id="wlist" rows="7" placeholder="Título"></textarea>
+  <div class="msg" id="wmsg"></div>
+  <div class="foot"><button class="btn ghost" id="wcancel">Cancelar</button><button class="btn" id="wsave">Añadir</button></div>
+</dialog>
+
+<dialog id="dlg" class="panel">
+  <h2>Datos</h2>
+  <p id="where">Todo se guarda solo en este navegador.</p>
+  <h3>Cargar XML de Plex</h3>
+  <input type="file" id="files" accept=".xml,.txt,text/xml,application/xml,text/plain,text/html,*/*" multiple>
+  <p style="margin-top:10px">Para la lista de capítulos, carga también el XML de <code>/library/sections/N/all?type=4</code> de tu biblioteca de series.</p>
+  <p>o pega el contenido:</p>
+  <textarea id="paste" rows="2"></textarea>
+  <button class="btn" id="doPaste">Importar</button>
+  <div id="syncbox">
+  <h3>Sincronizar con Plex</h3>
+  <p>Opcional. También muestra las carátulas y carga los capítulos de las series. Si dejas la dirección vacía, se busca sola con el token (así se usa en el móvil).</p>
+  <input type="text" id="srv" placeholder="Dirección (opcional): http://192.168.1.X:32400">
+  <input type="password" id="tok" placeholder="X-Plex-Token">
+  <button class="btn" id="doSync">Sincronizar</button>
+  </div>
+
+  <h3>Notas de FilmAffinity</h3>
+  <p>JSON: {"Barbie (2023)": 6.3, "Klaus (2019)": 7.6}</p>
+  <textarea id="faJson" rows="2"></textarea>
+  <button class="btn" id="doFa">Importar notas</button>
+  <h3>Copia de seguridad</h3>
+  <p>Incluye tus notas, marcas de vistas, series en espera y las listas "Por añadir".</p>
+  <button class="btn ghost" id="exp">Descargar</button>
+  <label class="btn ghost" style="display:inline-block">Restaurar<input type="file" id="imp" accept=".json" hidden></label>
+  <button class="btn ghost" id="wipe">Borrar todo</button>
+  <div class="msg" id="msg"></div>
+  <div class="foot"><button class="btn" id="close">Cerrar</button></div>
+</dialog>
+
+<script>
+if(!(window.HTMLDialogElement&&HTMLDialogElement.prototype.showModal)){
+  document.documentElement.classList.add('nodlg');
+  document.querySelectorAll('dialog').forEach(d=>{
+    d.open=false;
+    d.showModal=()=>{d.setAttribute('open','');d.open=true};
+    d.close=()=>{d.removeAttribute('open');d.open=false};
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('dialog[open]').forEach(d=>d.close())});
+}
+const LS='videoteca.v1',LSE='videoteca.eps.v1';
+const blank=()=>({movies:[],shows:[],server:'',token:'',fa:{},seen:{},wait:{},wish:{movies:[],shows:[]}});
+let S=blank();
+try{Object.assign(S,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){}
+S.wish={movies:[],shows:[],...S.wish};
+let EPS={};
+try{EPS=JSON.parse(localStorage.getItem(LSE)||'{}')}catch(e){}
+function save(){if(SHARED)return push();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){alert('No se pudo guardar: '+e.message)}}
+// Los capítulos van aparte: si no caben en el navegador, se usan solo durante esta sesión.
+function saveEps(){if(SHARED)return;try{localStorage.setItem(LSE,JSON.stringify(EPS))}catch(e){}}
+let tab='movies',VIEW=[],cur=null,curIdx=0;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dec=s=>s.replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#(\d+);/g,(m,n)=>String.fromCharCode(n)).replace(/&amp;/g,'&');
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const faUrl=t=>'https://www.filmaffinity.com/es/search.php?stext='+encodeURIComponent(t);
+
+function attrs(str){const o={},re=/(\w+)="([\s\S]*?)"(?=\s+\w+="|\s*$)/g;let m;while((m=re.exec(str)))o[m[1]]=dec(m[2]);return o}
+function parse(text){
+  // Reconoce tanto <Video ...>...</Video> como elementos sin cierre <Directory ... />
+  const out={movies:[],shows:[],eps:{}},re=/<(Video|Directory)\s((?:"[^"]*"|[^>"])*?)\s*(?:\/>|>([\s\S]*?)<\/\1>)/g;let m;
+  while((m=re.exec(text))){
+    const a=attrs(m[2]),inner=m[3]||'';
+    if(a.type==='episode'){
+      const k=a.grandparentRatingKey;
+      if(k)(out.eps[k]??=[]).push({s:+a.parentIndex||0,i:+a.index||0,t:a.title||'',d:+a.duration||0,v:+a.viewCount||0,o:+a.viewOffset||0});
+      continue;
+    }
+    if(a.type!=='movie'&&a.type!=='show')continue;
+    const tags=t=>[...inner.matchAll(new RegExp('<'+t+'\\s+tag="([\\s\\S]*?)"\\s*/>','g'))].map(x=>dec(x[1]));
+    const ub=(inner.match(/<UltraBlurColors\s([^>]*?)\s*\/>/)||[])[1],col=ub?attrs(ub.trim()):{};
+    const src=(a.audienceRatingImage||'').split(':')[0];
+    const it={key:a.guid||(a.title+'|'+a.year),rk:a.ratingKey||'',title:a.title||'',orig:a.originalTitle||'',year:+a.year||0,
+      summary:a.summary||'',ar:a.audienceRating?+a.audienceRating:null,
+      src:{imdb:'IMDb',rottentomatoes:'RT',themoviedb:'TMDB'}[src]||'Plex',
+      thumb:a.thumb||'',genres:tags('Genre'),dirs:tags('Director'),cast:tags('Role'),
+      c1:col.topLeft||'555',c2:col.bottomRight||'222',added:+a.addedAt||0,dur:+a.duration||0};
+    if(a.type==='movie'){it.views=+a.viewCount||0;it.offset=+a.viewOffset||0;out.movies.push(it)}
+    else{it.eps=+a.leafCount||0;it.seenEps=+a.viewedLeafCount||0;it.seasons=+a.childCount||0;out.shows.push(it)}
+  }
+  return out;
+}
+function addTo(acc,o){
+  acc.movies.push(...o.movies);acc.shows.push(...o.shows);
+  for(const[k,l]of Object.entries(o.eps))(acc.eps[k]??=[]).push(...l);
+}
+function merge(out){
+  if(out.movies.length)S.movies=out.movies;
+  if(out.shows.length)S.shows=out.shows;
+  let n=0;
+  if(Object.keys(out.eps).length){
+    for(const l of Object.values(out.eps)){l.sort((a,b)=>a.s-b.s||a.i-b.i);n+=l.length}
+    EPS=out.eps;saveEps();
+  }
+  save();saveLib();render();
+  return `Importadas ${out.movies.length} películas, ${out.shows.length} series${n?` y ${n} capítulos`:''}.`;
+}
+
+const isShow=it=>'eps' in it;
+const plexSeen=it=>isShow(it)?(it.eps>0&&it.seenEps>=it.eps):it.views>0;
+const isSeen=it=>it.key in S.seen?S.seen[it.key]:plexSeen(it);
+// Series en espera de nueva temporada: se guarda cuántas temporadas había al apuntarla
+const waitOf=it=>isShow(it)?S.wait[it.key]:null;
+const waitNew=it=>{const w=waitOf(it);return !!w&&it.seasons>w.seasons};
+const status=it=>isSeen(it)?'seen':((isShow(it)?it.seenEps>0:it.offset>0)?'run':'pending');
+const grad=it=>`linear-gradient(160deg,#${esc(it.c1)},#${esc(it.c2)})`;
+function fmtDur(ms){
+  if(!ms)return '–';
+  const t=Math.round(ms/60000),h=Math.floor(t/60),m=t%60;
+  return h?`${h} h${m?` ${m} min`:''}`:`${m} min`;
+}
+const epsOf=it=>(it.rk&&EPS[it.rk])||null;
+const sumDur=l=>l.reduce((a,e)=>a+e.d,0);
+
+function posterUrl(it,w=340){
+  if(!(S.server&&S.token&&it.thumb))return '';
+  return `${S.server.replace(/\/+$/,'')}/photo/:/transcode?width=${w}&height=${Math.round(w*1.5)}&minSize=1&upscale=1&url=${encodeURIComponent(it.thumb)}&X-Plex-Token=${encodeURIComponent(S.token)}`;
+}
+function metaLine(it){
+  let extra='';
+  if(isShow(it)){
+    const l=epsOf(it);
+    extra=`${it.seasons} ${it.seasons===1?'temporada':'temporadas'} · ${it.eps} capítulos${l?` · ${fmtDur(sumDur(l))}`:''}`;
+  }else extra=it.dur?fmtDur(it.dur):'';
+  return [it.year||'',it.genres.join(', '),extra].filter(Boolean).join('  ·  ');
+}
+
+function tile(it,i){
+  const st=status(it),sh=isShow(it),fa=S.fa[it.key]??'',img=posterUrl(it);
+  const run=st==='run'?`<div class="run"><i style="width:${sh&&it.eps?Math.min(100,it.seenEps/it.eps*100):50}%"></i></div>`:'';
+  const sub=sh?`${it.eps} capítulos${it.seenEps&&st!=='seen'?` · vistos ${it.seenEps}`:''}`:(it.year||'');
+  return `<div class="tile ${st==='seen'?'seen':''} ${waitNew(it)?'newseason':''}" data-i="${i}">
+    <div class="poster" style='background-image:${img?`url("${img}"), `:''}${grad(it)}'>
+      ${img?'':`<div class="ph">${esc(it.title)}<small>${esc(it.year||'')}</small></div>`}
+      ${waitOf(it)?`<div class="wbadge ${waitNew(it)?'new':''}" title="${esc(waitOf(it).note||'')}">${waitNew(it)?'¡Nueva temporada!':'⏳ En espera'}</div>`:''}
+      ${fa!==''?`<div class="fab">${esc(fa)}</div>`:''}
+      ${st==='seen'?'<div class="badge" title="Vista"></div>':''}
+      ${run}
+    </div>
+    <div class="cap">${esc(it.title)}<small>${esc(sub)}</small></div>
+  </div>`;
+}
+
+const isWish=()=>tab[0]==='w';
+const wkind=()=>tab==='wmovies'?'movies':'shows';
+
+function render(){
+  $('cm').textContent=S.movies.length||'';
+  $('cs').textContent=S.shows.length||'';
+  $('cwm').textContent=S.wish.movies.length||'';
+  $('cws').textContent=S.wish.shows.length||'';
+  document.body.classList.toggle('wish',isWish());
+  $('q').placeholder=isWish()?'Buscar en tu lista':'Buscar por título, actor o director';
+  if(isWish())return renderWish();
+  $('grid').className='';
+  const all=S[tab];
+  const gsel=$('g'),curG=gsel.value,genres=[...new Set(all.flatMap(i=>i.genres))].sort((a,b)=>a.localeCompare(b,'es'));
+  gsel.innerHTML='<option value="">Todos los géneros</option>'+genres.map(g=>`<option ${g===curG?'selected':''}>${esc(g)}</option>`).join('');
+  $('f').querySelector('[value=wait]').hidden=tab!=='shows';
+  if(tab!=='shows'&&$('f').value==='wait')$('f').value='all';
+  const q=$('q').value.trim().toLowerCase(),f=$('f').value,g=gsel.value,o=$('o').value;
+  let list=all.filter(it=>(!q||[it.title,it.orig,...it.cast,...it.dirs].join(' ').toLowerCase().includes(q))
+    &&(f==='all'||(f==='wait'?!!waitOf(it):status(it)===f))&&(!g||it.genres.includes(g)));
+  const num=v=>v===''||v==null||isNaN(v)?-1:+v;
+  const sorters={title:(a,b)=>a.title.localeCompare(b.title,'es'),added:(a,b)=>b.added-a.added,year:(a,b)=>b.year-a.year,
+    fa:(a,b)=>num(S.fa[b.key])-num(S.fa[a.key]),ar:(a,b)=>(b.ar??-1)-(a.ar??-1)};
+  list.sort(sorters[o]);
+  if(f==='wait')list.sort((a,b)=>waitNew(b)-waitNew(a)); // las que ya tienen temporada nueva, primero
+  VIEW=list;
+  const c={seen:0,run:0,pending:0};all.forEach(i=>c[status(i)]++);
+  const nW=all.filter(waitOf).length,nN=all.filter(waitNew).length;
+  $('stats').textContent=all.length?`${list.length} ${list.length===1?'título':'títulos'} · ${c.seen} vistos · ${c.run} a medias · ${c.pending} pendientes${nW?` · ${nW} en espera`:''}${nN?` · ${nN} con temporada nueva`:''}`:'';
+  $('grid').innerHTML=all.length?(list.map(tile).join('')||'<div class="empty">Nada coincide con la búsqueda.</div>')
+    :'<div class="empty">Aún no hay nada aquí.<br>Pulsa <b>Datos</b> arriba a la derecha y carga tus XML de Plex.</div>';
+}
+
+/* ---------- Listas "Por añadir" ---------- */
+function inLib(w,kind){
+  const t=[norm(w.title),norm(w.orig)].filter(Boolean);
+  return S[kind].find(it=>(t.includes(norm(it.title))||(it.orig&&t.includes(norm(it.orig))))
+    &&(!w.year||!it.year||Math.abs(w.year-it.year)<=1));
+}
+function witem(w,kind){
+  return `<div class="witem" data-id="${esc(w.id)}">
+    <span class="wt">${esc(w.title)}${w.year?`<small>${w.year}</small>`:''}</span>
+    ${inLib(w,kind)?`<button class="inplex" data-a="plex" title="Abrir en tu biblioteca">✓ Ya en tu Plex</button>`:''}
+    <a href="${faUrl(w.title)}" target="_blank" rel="noopener">FilmAffinity ↗</a>
+    <button data-a="edit">Editar</button>
+    <button class="del" data-a="del" title="Quitar de la lista">×</button>
+  </div>`;
+}
+// "Título (2024)" → {title, year}; quita viñetas y numeraciones de la nota
+function parseLine(line){
+  line=line.replace(/^\s*(?:[-*•·]|\d+[.)])\s*/,'').trim();
+  const m=line.match(/^(.*?)\s*\((\d{4})\)\s*$/);
+  return {title:(m?m[1]:line).trim(),year:m?+m[2]:0};
+}
+function renderWish(){
+  const kind=wkind(),all=S.wish[kind],q=norm($('q').value),o=$('wo').value;
+  const list=all.filter(w=>!q||norm(w.title).includes(q));
+  const sorters={added:(a,b)=>b.added-a.added,title:(a,b)=>a.title.localeCompare(b.title,'es'),
+    plex:(a,b)=>!!inLib(b,kind)-!!inLib(a,kind)||b.added-a.added};
+  list.sort(sorters[o]);
+  const nP=all.filter(w=>inLib(w,kind)).length;
+  $('stats').textContent=all.length?`${list.length} ${list.length===1?"título":"títulos"}${nP?` · ${nP} ya en tu Plex`:''}`:'';
+  $('grid').className='wlist';
+  $('grid').innerHTML=all.length?(list.map(w=>witem(w,kind)).join('')||'<div class="empty">Nada coincide con la búsqueda.</div>')
+    :`<div class="empty">Aún no tienes ${kind==='movies'?'películas':'series'} apuntadas.<br>Pulsa <b>+ Añadir</b> para apuntar una o pegar tu lista entera.</div>`;
+}
+
+const wmsg=t=>$('wmsg').textContent=t;
+let wEdit=null;
+function openW(w){
+  wEdit=w||null;const pel=wkind()==='movies';
+  $('wh').textContent=w?'Editar título':'Añadir '+(pel?'películas':'series');
+  $('wlist').value=w?w.title+(w.year?` (${w.year})`:''):'';
+  $('wlist').rows=w?1:7;$('whelp').style.display=w?'none':'';
+  $('wsave').textContent=w?'Guardar':'Añadir';
+  wmsg('');$('wdlg').showModal();$('wlist').focus();
+}
+$('wadd').onclick=()=>openW(null);
+$('wcancel').onclick=()=>$('wdlg').close();
+$('wsave').onclick=()=>{
+  if(wEdit){
+    const {title,year}=parseLine($('wlist').value.split('\n')[0]);if(!title)return wmsg('Escribe el título.');
+    Object.assign(wEdit,{title,year});save();render();return $('wdlg').close();
+  }
+  const kind=wkind(),have=new Set(S.wish[kind].map(w=>norm(w.title))),news=[];let dup=0;
+  for(const line of $('wlist').value.split('\n')){
+    const {title,year}=parseLine(line);if(!title)continue;
+    if(have.has(norm(title))){dup++;continue}
+    have.add(norm(title));news.push({id:uid(),added:Date.now()-news.length,title,year});
+  }
+  if(!news.length)return wmsg(dup?'Ya estaba en la lista.':'Escribe al menos un título.');
+  S.wish[kind].push(...news);save();render();
+  if(!dup)return $('wdlg').close();
+  wmsg(`Añadidos ${news.length} (${dup} ya estaban).`);setTimeout(()=>$('wdlg').close(),1200);
+};
+// Con un solo título, Enter añade; Mayús+Enter salta de línea para escribir más
+$('wlist').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!$('wlist').value.includes('\n')){e.preventDefault();$('wsave').click()}});
+
+/* ---------- Ficha de detalle ---------- */
+function epsHtml(it){
+  const l=epsOf(it);
+  if(!l||!l.length)return `<div class="deps"><div class="dh">Capítulos</div><p class="dnote">${
+    S.server&&S.token?'Pulsa <b>Sincronizar</b> en Datos para cargar la lista de capítulos.'
+    :'La lista de capítulos se carga al sincronizar con Plex, o con el XML de capítulos (en Datos).'}</p></div>`;
+  const by={};l.forEach(e=>(by[e.s]??=[]).push(e));
+  const ss=Object.keys(by).map(Number).sort((a,b)=>(a||1e9)-(b||1e9)); // especiales al final
+  let open=ss.find(s=>by[s].some(e=>!e.v));if(open===undefined)open=ss[0];
+  const seasons=ss.map(s=>{
+    const eps=by[s],seen=eps.filter(e=>e.v).length;
+    const rows=eps.map(e=>{
+      const cls=e.v?'seen':(e.o?'run':''),p=e.o&&e.d?Math.round(e.o/e.d*100):0;
+      return `<div class="ep ${cls}"><span class="n">${e.i||''}</span><span class="t" title="${esc(e.t)}">${esc(e.t)}</span>`+
+        `<span class="d">${fmtDur(e.d)}</span><span class="s"${p?` style="--p:${p}%"`:''} title="${e.v?'Visto':p?`Visto el ${p}%`:'Pendiente'}"></span></div>`;
+    }).join('');
+    return `<details class="season"${s===open?' open':''}><summary><b>${s?`Temporada ${s}`:'Especiales'}</b>`+
+      `<span>${eps.length} ${eps.length===1?'capítulo':'capítulos'}${seen?` · ${seen} vistos`:''} · ${fmtDur(sumDur(eps))}</span></summary>${rows}</details>`;
+  }).join('');
+  const left=sumDur(l.filter(e=>!e.v));
+  return `<div class="deps"><div class="dh">Capítulos<span>${fmtDur(sumDur(l))} en total${left&&left<sumDur(l)?` · quedan ${fmtDur(left)}`:''}</span></div>${seasons}</div>`;
+}
+function openDet(i){curIdx=i;cur=VIEW[i];if(!cur)return;fillDet();if(!$('det').open)$('det').showModal();$('det').scrollTop=0}
+function fillDet(){
+  const it=cur,st=status(it),sh=isShow(it),fa=S.fa[it.key]??'',img=posterUrl(it,600);
+  const wt=waitOf(it);
+  const prog=sh&&it.eps?`<div class="dprog"><div><i style="width:${Math.min(100,(st==='seen'?it.eps:it.seenEps)/it.eps*100)}%"></i></div>${st==='seen'?it.eps:it.seenEps} de ${it.eps} capítulos vistos</div>`:'';
+  const openSeasons=[...$('dbody').querySelectorAll('.season[open] b')].map(b=>b.textContent);
+  $('dbody').innerHTML=`
+    <div class="dbg" style="background:${grad(it)}"></div>
+    <div class="dposter" style='background-image:${img?`url("${img}"), `:''}${grad(it)}'>${img?'':`<div class="ph">${esc(it.title)}</div>`}</div>
+    <div>
+      <div class="dt">${esc(it.title)}</div>
+      ${it.orig&&it.orig!==it.title?`<div class="do">${esc(it.orig)}</div>`:''}
+      <div class="dm">${esc(metaLine(it))}</div>
+      <div class="dscore">
+        <div class="sc"><input id="dfa" value="${esc(fa)}" placeholder="–" inputmode="decimal" title="Escribe la nota de FilmAffinity">
+          <a href="${faUrl(it.title)}" target="_blank" rel="noopener">FilmAffinity ↗</a></div>
+        ${it.ar!=null?`<div class="sc"><div class="v">${it.ar.toFixed(1)}</div><span>${esc(it.src)}</span></div>`:''}
+        <button class="toggle ${st==='seen'?'on':''}" id="dseen">${st==='seen'?'✓ Vista':'Marcar como vista'}</button>
+        ${sh?`<button class="toggle wait ${wt?'on':''}" id="dwaitb" title="Apúntala para acordarte de que va a salir otra temporada">${wt?'⏳ Esperando temporada':'Esperar nueva temporada'}</button>`:''}
+      </div>
+      ${prog}
+      ${wt?`<div class="dwait">${waitNew(it)
+        ?`<span class="new">¡Ya está la temporada ${it.seasons}!</span><button id="dwaitk">Esperar la siguiente</button>`
+        :`<span>Apuntada con ${wt.seasons} ${wt.seasons===1?'temporada':'temporadas'}</span>`}
+        <input id="dwaitn" value="${esc(wt.note||'')}" placeholder="Nota: p. ej. «T3 confirmada para otoño de 2027»"></div>`:''}
+      <p class="dsyn">${esc(it.summary)||'<i>Sin sinopsis en Plex.</i>'}</p>
+      ${it.dirs.length?`<div class="dcr"><b>Dirección:</b> ${esc(it.dirs.join(', '))}</div>`:''}
+      ${it.cast.length?`<div class="dcr"><b>Reparto:</b> ${esc(it.cast.join(', '))}</div>`:''}
+    </div>
+    ${sh?epsHtml(it):''}`;
+  // Al pulsar "Vista" en la misma serie, conserva las temporadas que tenías desplegadas
+  if(openSeasons.length&&$('dbody').dataset.k===it.key)
+    $('dbody').querySelectorAll('.season').forEach(d=>d.open=openSeasons.includes(d.querySelector('b').textContent));
+  $('dbody').dataset.k=it.key;
+  $('dpos').textContent=VIEW.length?`${curIdx+1} / ${VIEW.length}`:'';
+  $('dprev').style.visibility=curIdx>0?'visible':'hidden';
+  $('dnext').style.visibility=curIdx<VIEW.length-1?'visible':'hidden';
+}
+function step(d){const n=curIdx+d;if(n>=0&&n<VIEW.length)openDet(n)}
+function syncIdx(){const i=VIEW.findIndex(x=>x.key===cur.key);if(i>=0)curIdx=i}
+
+$('grid').addEventListener('click',e=>{
+  const t=e.target.closest('.tile');if(t)return openDet(+t.dataset.i);
+  const c=e.target.closest('.witem');if(!c)return;
+  const kind=wkind(),w=S.wish[kind].find(x=>x.id===c.dataset.id);if(!w)return;
+  const a=e.target.closest('[data-a]')?.dataset.a;
+  if(a==='edit')return openW(w);
+  if(a==='del'){ // primer toque pide confirmación; el segundo borra
+    const btn=e.target.closest('[data-a]');
+    if(btn.dataset.sure){S.wish[kind]=S.wish[kind].filter(x=>x!==w);save();render();return}
+    btn.dataset.sure='1';btn.textContent='¿Quitar?';btn.classList.add('sure');
+    setTimeout(()=>{if(btn.isConnected){delete btn.dataset.sure;btn.textContent='×';btn.classList.remove('sure')}},3000);
+    return;
+  }
+  if(a==='plex'){
+    const it=inLib(w,kind);setTab(kind);
+    const i=VIEW.findIndex(x=>x.key===it.key);if(i>=0)openDet(i);
+  }
+});
+$('det').addEventListener('click',e=>{
+  if(e.target===$('det')||e.target.id==='dx')return $('det').close();
+  if(e.target.id==='dprev')return step(-1);
+  if(e.target.id==='dnext')return step(1);
+  if(e.target.id==='dwaitb'){
+    if(S.wait[cur.key])delete S.wait[cur.key];else S.wait[cur.key]={seasons:cur.seasons,note:'',since:Date.now()};
+    save();render();syncIdx();fillDet();if(S.wait[cur.key])$('dwaitn').focus();return;
+  }
+  if(e.target.id==='dwaitk'){S.wait[cur.key].seasons=cur.seasons;save();render();syncIdx();return fillDet()}
+  if(e.target.id==='dseen'){S.seen[cur.key]=!isSeen(cur);save();render();syncIdx();fillDet()}
+});
+$('det').addEventListener('change',e=>{
+  if(e.target.id==='dwaitn'){if(S.wait[cur.key]){S.wait[cur.key].note=e.target.value.trim();save();render();syncIdx()}return}
+  if(e.target.id!=='dfa')return;
+  const v=e.target.value.replace(',','.').trim();
+  if(v===''||isNaN(v))delete S.fa[cur.key];else S.fa[cur.key]=+(+v).toFixed(1);
+  save();render();syncIdx();
+});
+document.addEventListener('keydown',e=>{
+  if(!$('det').open||e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowLeft')step(-1);
+  if(e.key==='ArrowRight')step(1);
+});
+
+/* ---------- Controles generales ---------- */
+function setTab(t){
+  if((t[0]==='w')!==isWish())$('q').value=''; // al cambiar entre biblioteca y listas, limpia la búsqueda
+  tab=t;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+  $('g').value='';render();
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+['q','f','g','o','wo'].forEach(id=>$(id).addEventListener('input',render));
+const msg=t=>$('msg').textContent=t;
+$('cfg').onclick=()=>{$('srv').value=S.server;$('tok').value=S.token;msg('');$('dlg').showModal()};
+$('close').onclick=()=>$('dlg').close();
+/* Lectura tolerante: en el móvil el XML suele llegar en otra codificación o guardado como página web */
+async function readText(f){
+  const b=new Uint8Array(await f.arrayBuffer());
+  let enc='utf-8';
+  if(b[0]===0xFF&&b[1]===0xFE)enc='utf-16le';
+  else if(b[0]===0xFE&&b[1]===0xFF)enc='utf-16be';
+  else{let z=0;const n=Math.min(b.length,2000);for(let i=0;i<n;i++)if(!b[i])z++;
+    if(z>n/4)enc=b[0]===0?'utf-16be':'utf-16le'}
+  return new TextDecoder(enc).decode(b);
+}
+function cleanXml(t){
+  t=String(t||'').replace(/^\uFEFF/,'');
+  if(!/<(Video|Directory)\s/.test(t)&&/&lt;\s*(Video|Directory)\s/.test(t))
+    t=new DOMParser().parseFromString(t,'text/html').body.textContent||''; // XML guardado como página web
+  return t;
+}
+function why(name,t){
+  const snip=String(t||'').replace(/\s+/g,' ').trim().slice(0,90);
+  if(!snip)return `«${name}» está vacío o no se ha podido leer.`;
+  if(/<MediaContainer[^>]*size="0"/.test(t))return `«${name}» es un XML de Plex, pero viene vacío (size="0"). Revisa el número de biblioteca o el token de la dirección.`;
+  if(/<MediaContainer/.test(t))return `«${name}» es un XML de Plex, pero no trae películas, series ni capítulos.`;
+  return `En «${name}» no hay películas ni series de Plex. Empieza así: «${snip}…»`;
+}
+function importTexts(items){
+  const acc={movies:[],shows:[],eps:{}},bad=[];
+  for(const[name,raw]of items){
+    const t=cleanXml(raw),o=parse(t);
+    if(!o.movies.length&&!o.shows.length&&!Object.keys(o.eps).length)bad.push(why(name,t));
+    addTo(acc,o);
+  }
+  const ok=acc.movies.length||acc.shows.length||Object.keys(acc.eps).length;
+  msg((ok?merge(acc)+' ':'')+bad.join(' '));
+}
+$('files').onchange=async e=>{
+  const items=[];
+  for(const f of e.target.files){try{items.push([f.name,await readText(f)])}catch(err){items.push([f.name,''])}}
+  importTexts(items);e.target.value='';
+};
+$('doPaste').onclick=()=>{importTexts([['lo pegado',$('paste').value]]);$('paste').value=''};
+/* Busca en plex.tv la dirección segura (https://…plex.direct) de tu servidor.
+   Hace falta cuando la página se abre desde una web https (por ejemplo en el móvil). */
+async function plexDiscover(token){
+  let cid='videoteca-web';
+  try{cid=localStorage.getItem('videoteca.cid')||uid();localStorage.setItem('videoteca.cid',cid)}catch(e){}
+  const r=await fetch('https://plex.tv/api/v2/resources?includeHttps=1&includeRelay=1',
+    {headers:{Accept:'application/json','X-Plex-Token':token,'X-Plex-Client-Identifier':cid,'X-Plex-Product':'Videoteca'}});
+  if(r.status===401)throw new Error('token');
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const list=(await r.json()).filter(d=>String(d.provides||'').includes('server')).sort((a,b)=>!!b.owned-!!a.owned);
+  for(const d of list){
+    // primero la conexión de dentro de casa, luego la remota y por último el relé de Plex
+    const cs=(d.connections||[]).filter(c=>c.protocol==='https').sort((a,b)=>!!b.local-!!a.local||!!a.relay-!!b.relay);
+    for(const c of cs){
+      const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),4000);
+      try{const ok=await fetch(c.uri+'/identity',{signal:ctl.signal});if(ok.ok)return {uri:c.uri,token:d.accessToken||token,name:d.name,relay:!!c.relay}}
+      catch(e){}finally{clearTimeout(t)}
+    }
+  }
+  return null;
+}
+$('doSync').onclick=async()=>{
+  S.token=$('tok').value.trim();
+  let srv=$('srv').value.trim().replace(/\/+$/,'');
+  if(!S.token)return msg('Falta el token de Plex.');
+  if(!srv||(location.protocol==='https:'&&!/^https:/i.test(srv))){
+    msg('Buscando tu servidor Plex…');
+    try{
+      const f=await plexDiscover(S.token);
+      if(!f)return msg('No se ha podido conectar con tu Plex por la dirección segura. Comprueba que estás en el wifi de casa y que en Plex → Ajustes → Red las conexiones seguras están en «Preferidas».');
+      srv=f.uri;S.token=f.token;$('srv').value=srv;$('tok').value=S.token;
+      msg(`Encontrado «${f.name}»${f.relay?' (por el relé de Plex, irá algo más lento)':''}.`);
+    }catch(e){return msg(e.message==='token'?'Plex no acepta ese token. Revísalo.':'No se pudo contactar con plex.tv ('+e.message+').')}
+  }
+  S.server=srv;save();
+  msg('Conectando con Plex…');
+  try{
+    const get=async p=>{const r=await fetch(S.server+p+(p.includes('?')?'&':'?')+'X-Plex-Token='+encodeURIComponent(S.token),{headers:{Accept:'application/xml'}});if(!r.ok)throw new Error('HTTP '+r.status);return r.text()};
+    const secs=[...(await get('/library/sections')).matchAll(/<Directory\s([\s\S]*?")\s*\/?>/g)].map(x=>attrs(x[1])).filter(d=>d.type==='movie'||d.type==='show');
+    const acc={movies:[],shows:[],eps:{}};
+    for(const s of secs){
+      msg(`Leyendo «${s.title||s.key}»…`);
+      addTo(acc,parse(await get(`/library/sections/${s.key}/all`)));
+      if(s.type==='show')addTo(acc,parse(await get(`/library/sections/${s.key}/all?type=4`))); // todos los capítulos
+    }
+    msg(merge(acc));
+  }catch(err){msg('No se pudo conectar ('+err.message+'). Revisa la dirección y el token, o carga los XML a mano.')}
+};
+$('doFa').onclick=()=>{
+  try{
+    const obj=JSON.parse($('faJson').value),idx={};let n=0;
+    [...S.movies,...S.shows].forEach(i=>{idx[`${i.title} (${i.year})`.toLowerCase()]=i.key;idx[i.title.toLowerCase()]??=i.key});
+    for(const[k,v]of Object.entries(obj)){const key=idx[k.toLowerCase()];if(key&&!isNaN(v)){S.fa[key]=+v;n++}}
+    save();render();msg(`${n} notas importadas.`);
+  }catch(e){msg('El JSON no es válido.')}
+};
+$('exp').onclick=async()=>{
+  const data=JSON.stringify({fa:S.fa,seen:S.seen,wait:S.wait,wish:S.wish},null,1),filename='videoteca-copia.json';
+  const dl=window.claude?.use?await window.claude.use('downloads').catch(()=>null):null;
+  if(dl){
+    try{await dl.save({filename,data});msg('Copia descargada.')}
+    catch(e){msg(e?.code==='declined'?'No se ha descargado la copia.':'No se puede descargar la copia desde aquí.')}
+    return;
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));
+  a.download=filename;a.click();
+};
+$('imp').onchange=async e=>{try{
+  const o=JSON.parse(await e.target.files[0].text());
+  Object.assign(S.fa,o.fa||{});Object.assign(S.seen,o.seen||{});Object.assign(S.wait,o.wait||{});
+  for(const k of ['movies','shows']){const ids=new Set(S.wish[k].map(w=>w.id));(o.wish?.[k]||[]).forEach(w=>{if(!ids.has(w.id))S.wish[k].push(w)})}
+  save();render();msg('Copia restaurada.');
+}catch(err){msg('Archivo no válido.')}};
+let wipeT=0;
+$('wipe').onclick=()=>{
+  const b=$('wipe');
+  if(!b.dataset.sure){ // primer toque pide confirmación
+    b.dataset.sure='1';b.textContent=SHARED?'Pulsa otra vez: se borra para todos':'Pulsa otra vez para borrar todo';
+    clearTimeout(wipeT);wipeT=setTimeout(()=>{delete b.dataset.sure;b.textContent='Borrar todo'},4000);return;
+  }
+  clearTimeout(wipeT);delete b.dataset.sure;b.textContent='Borrar todo';
+  {S=blank();EPS={};save();saveLib();try{localStorage.removeItem(LSE)}catch(e){}render();msg('Borrado.')}};
+/* ---------- Modo compartido ----------
+   Si la página se abre desde el servidor de casa (servidor-videoteca.py), los datos se guardan allí
+   y todos ven los cambios de los demás. Abierta como archivo, todo sigue guardándose en este navegador. */
+let SHARED=false,SNAP={},pending=0,REV=-1,LIBREV=-1;
+const clone=o=>JSON.parse(JSON.stringify(o));
+function flat(){
+  const o={cfg:{server:S.server,token:S.token}};
+  for(const[k,v]of Object.entries(S.fa))o['fa/'+k]=v;
+  for(const[k,v]of Object.entries(S.seen))o['seen/'+k]=v;
+  for(const[k,v]of Object.entries(S.wait))o['wait/'+k]=v;
+  for(const kind of ['movies','shows'])for(const w of S.wish[kind])o[`wish/${kind}/${w.id}`]=w;
+  return o;
+}
+function unflat(d){
+  S.fa={};S.seen={};S.wait={};S.wish={movies:[],shows:[]};
+  S.server=d.cfg?.server||'';S.token=d.cfg?.token||'';
+  for(const[k,v]of Object.entries(d)){
+    const i=k.indexOf('/');if(i<0)continue;
+    const p=k.slice(0,i),rest=k.slice(i+1);
+    if(p==='fa')S.fa[rest]=v;else if(p==='seen')S.seen[rest]=v;else if(p==='wait')S.wait[rest]=v;
+    else if(p==='wish'){const kind=rest.split('/')[0];S.wish[kind]?.push(v)}
+  }
+}
+function diff(){
+  const now=flat(),patch={};
+  for(const k of new Set([...Object.keys(now),...Object.keys(SNAP)]))
+    if(JSON.stringify(now[k]??null)!==JSON.stringify(SNAP[k]??null))patch[k]=now[k]??null;
+  return patch;
+}
+async function api(path,opt={}){
+  const r=await fetch('api/'+path,{cache:'no-store',...opt,headers:{'Content-Type':'application/json'}});
+  if(!r.ok)throw new Error('HTTP '+r.status);return r.json();
+}
+function setNet(ok){const n=$('net');n.textContent=ok?'● Compartida':'● Sin conexión';n.className='net '+(ok?'ok':'bad');n.title=ok?'Los cambios se guardan para todos los de casa':'No se puede contactar con el ordenador de casa; tus cambios se enviarán al volver la conexión'}
+async function push(){
+  const patch=diff();if(!Object.keys(patch).length)return;
+  pending++;
+  try{
+    const r=await api('state',{method:'PATCH',body:JSON.stringify(patch)});
+    for(const[k,v]of Object.entries(patch)){if(v===null)delete SNAP[k];else SNAP[k]=clone(v)}
+    if(r.prev===REV)REV=r.rev; // si alguien cambió algo entretanto, el siguiente sondeo lo trae
+    setNet(true);
+  }catch(e){setNet(false)}
+  finally{pending--}
+}
+function saveLib(){
+  if(!SHARED)return;
+  pending++;
+  api('lib',{method:'PUT',body:JSON.stringify({movies:S.movies,shows:S.shows,eps:EPS})})
+    .then(r=>{if(r.prev===LIBREV)LIBREV=r.libRev;setNet(true)})
+    .catch(()=>{setNet(false);msg('No se pudo guardar la biblioteca en el ordenador de casa.')})
+    .finally(()=>pending--);
+}
+function refresh(){
+  render();
+  // Refresca la ficha abierta, salvo que estés escribiendo en ella
+  if($('det').open&&cur&&!($('det').contains(document.activeElement)&&document.activeElement.tagName==='INPUT')){
+    const i=VIEW.findIndex(x=>x.key===cur.key);if(i>=0){curIdx=i;cur=VIEW[i];fillDet()}
+  }
+}
+async function poll(){
+  if(pending)return;
+  try{
+    if(Object.keys(diff()).length){await push();if(Object.keys(diff()).length)return} // primero envía lo que quedó pendiente
+    const r=await api('rev');setNet(true);
+    let changed=false;
+    if(r.libRev!==LIBREV){
+      const l=await api('lib');LIBREV=l.libRev;
+      S.movies=l.lib.movies||[];S.shows=l.lib.shows||[];EPS=l.lib.eps||{};changed=true;
+    }
+    if(r.rev!==REV){
+      const st=await api('state');
+      if(pending||Object.keys(diff()).length)return;
+      REV=st.rev;SNAP=clone(st.data);SNAP.cfg??={server:'',token:''};unflat(st.data);changed=true;
+    }
+    if(changed)refresh();
+  }catch(e){setNet(false)}
+}
+async function initShared(){
+  if(!/^https?:$/.test(location.protocol))return;
+  try{await api('rev')}catch(e){return} // no hay servidor: modo local
+  SHARED=true;S=blank();EPS={};SNAP=flat();
+  $('net').hidden=false;
+  $('where').textContent='Los datos se guardan en el ordenador de casa y los ve todo el que abra esta página.';
+  await poll();
+  setInterval(poll,4000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
+}
+render();
+initShared();
+</script>
+</body>
+</html>
