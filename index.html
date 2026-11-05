@@ -54,8 +54,13 @@ main{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:
 
 /* Listas "por añadir" */
 main.wlist{display:block;max-width:780px;padding-top:12px}
-.witem{display:flex;align-items:center;gap:8px 18px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px}
+.witem{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px}
 .witem:hover{background:rgba(255,255,255,.025)}
+.wnote{flex:1 0 100%;margin:0 0 0 32px;width:calc(100% - 32px);max-width:calc(100% - 32px);background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 8px;color:var(--fg);font:inherit;font-size:13.5px;outline:none}
+.wnote::placeholder{color:#5c5c64}
+.wnote:hover{border-color:var(--line)}
+.wnote:focus{border-color:#444;background:var(--soft)}
+.witem.done .wnote{color:var(--mut)}
 .wchk{flex:1;min-width:0;display:flex;align-items:center;gap:12px;cursor:pointer}
 .wchk input{flex:none;width:20px;height:20px;margin:0;accent-color:var(--ok);cursor:pointer}
 .witem.done .wt{color:var(--mut);text-decoration:line-through;text-decoration-color:rgba(154,154,162,.6)}
@@ -173,6 +178,7 @@ html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%
   .tools{gap:8px 14px;padding-top:12px}
   #q{flex:1 0 100%;max-width:none}
   /* letra de 16px en las casillas: así el iPhone no hace zoom al tocarlas */
+.wnote,
   #q,select,.panel textarea,.panel input[type=text],.panel input[type=password],.dwait input,.sc input{font-size:16px!important}
   .panel{width:94%;padding:20px}
   #det{width:96%;max-height:92vh;max-height:92dvh}
@@ -180,6 +186,7 @@ html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%
   .witem{flex-wrap:wrap}
   .witem .wchk{flex-basis:100%}
   .witem .wt{white-space:normal}
+  .wnote{margin-left:-8px;width:calc(100% + 8px);max-width:calc(100% + 8px);border-color:var(--line)}
   .stats{margin-left:0;width:100%}
   .dwrap{grid-template-columns:1fr;padding:22px;gap:20px}
   .dposter{width:150px}
@@ -430,6 +437,7 @@ function witem(w,kind){
     <a href="${faUrl(w.title)}" target="_blank" rel="noopener">FilmAffinity ↗</a>
     <button data-a="edit">Editar</button>
     <button class="del" data-a="del" title="Quitar de la lista">×</button>
+    ${kind==='shows'?`<input type="text" class="wnote" id="note-${esc(w.id)}" value="${esc(w.note||'')}" placeholder="Notas: capítulos que tienes o te faltan" aria-label="Notas de ${esc(w.title)}">`:''}
   </div>`;
 }
 // "Título (2024)" → {title, year}; quita viñetas y numeraciones de la nota
@@ -440,7 +448,7 @@ function parseLine(line){
 }
 function renderWish(){
   const kind=wkind(),all=S.wish[kind],q=norm($('q').value),o=$('wo').value;
-  const list=all.filter(w=>!q||norm(w.title).includes(q));
+  const list=all.filter(w=>!q||norm(w.title+' '+(w.note||'')).includes(q));
   const sorters={added:(a,b)=>b.added-a.added,title:(a,b)=>a.title.localeCompare(b.title,'es'),
     plex:(a,b)=>!!inLib(b,kind)-!!inLib(a,kind)||b.added-a.added};
   list.sort(sorters[o]);
@@ -563,6 +571,13 @@ $('grid').addEventListener('click',e=>{
     const it=inLib(w,kind);setTab(kind);
     const i=VIEW.findIndex(x=>x.key===it.key);if(i>=0)openDet(i);
   }
+});
+let noteT=0;
+$('grid').addEventListener('input',e=>{
+  if(!e.target.classList.contains('wnote'))return;
+  const c=e.target.closest('.witem'),w=S.wish[wkind()].find(x=>x.id===c?.dataset.id);if(!w)return;
+  const v=e.target.value.trim();if(v)w.note=v;else delete w.note;
+  clearTimeout(noteT);noteT=setTimeout(save,600);
 });
 $('grid').addEventListener('change',e=>{
   if(e.target.dataset.a!=='done')return;
@@ -781,6 +796,7 @@ function saveLib(){
     .finally(()=>pending--);
 }
 function refresh(){
+  if(document.activeElement?.classList.contains('wnote'))return;
   render();
   // Refresca la ficha abierta, salvo que estés escribiendo en ella
   if($('det').open&&cur&&!($('det').contains(document.activeElement)&&document.activeElement.tagName==='INPUT')){
