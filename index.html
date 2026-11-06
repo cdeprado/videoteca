@@ -52,27 +52,47 @@ main{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:
 .cap small{display:block;font-weight:400;font-size:12px;color:var(--mut)}
 .empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:90px 20px;line-height:1.7}
 
-/* Listas "por añadir" */
-main.wlist{display:block;max-width:780px;padding-top:12px}
-.witem{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px}
-.witem:hover{background:rgba(255,255,255,.025)}
-.wnote{flex:1 0 100%;margin:0 0 0 32px;width:calc(100% - 32px);max-width:calc(100% - 32px);background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 8px;color:var(--fg);font:inherit;font-size:13.5px;outline:none}
-.wnote::placeholder{color:#5c5c64}
-.wnote:hover{border-color:var(--line)}
-.wnote:focus{border-color:#444;background:var(--soft)}
-.witem.done .wnote{color:var(--mut)}
-.wchk{flex:1;min-width:0;display:flex;align-items:center;gap:12px;cursor:pointer}
-.wchk input{flex:none;width:20px;height:20px;margin:0;accent-color:var(--ok);cursor:pointer}
-.witem.done .wt{color:var(--mut);text-decoration:line-through;text-decoration-color:rgba(154,154,162,.6)}
-.witem .wt{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.witem .wt small{font-weight:400;color:var(--mut);font-size:13px;margin-left:6px}
-.witem a,.witem button{background:none;border:0;padding:0;color:var(--mut);font:inherit;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
-.witem a:hover,.witem button:hover{color:var(--fg)}
-.witem .del{font-size:18px;line-height:1;width:22px}
-.witem .del:hover,.witem .del.sure{color:#f85149}
-.witem .del.sure{font-size:13px;width:auto;font-weight:600}
-.witem .inplex{background:rgba(63,185,80,.15);color:var(--ok);border-radius:5px;font-size:12px;font-weight:600;padding:2px 8px}
-.witem .inplex:hover{background:rgba(63,185,80,.25);color:var(--ok)}
+/* Listas "por añadir": una tarjeta por título, con la nota dentro */
+main.wlist{display:block;max-width:760px;padding-top:6px}
+.wadd{display:flex;gap:8px;align-items:center}
+.wadd input{flex:1;min-width:0;border:1px solid var(--line);background:var(--soft);color:var(--fg);border-radius:10px;padding:11px 14px;font:inherit;outline:none}
+.wadd input:focus{border-color:var(--acc)}
+.wadd .btn{padding:11px 16px;border-radius:10px}
+.wpaste{background:none;border:0;padding:0;margin:8px 0 0 2px;color:var(--mut);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.wpaste:hover{color:var(--fg)}
+.wsec{display:flex;align-items:baseline;gap:8px;margin:26px 0 10px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.wsec b{font-weight:600;color:#6c6c74;letter-spacing:0;font-variant-numeric:tabular-nums}
+details.wdone>summary{list-style:none;cursor:pointer}
+details.wdone>summary::-webkit-details-marker{display:none}
+details.wdone>summary::after{content:"▸";font-size:12px;letter-spacing:0}
+details.wdone[open]>summary::after{content:"▾"}
+details.wdone>summary:hover{color:var(--fg)}
+.wgroup{display:grid;gap:8px}
+.wcard{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:2px 14px;align-items:start;padding:13px 10px 11px 14px;background:var(--soft);border:1px solid var(--line);border-radius:12px;transition:border-color .15s}
+.wcard:hover,.wcard:focus-within{border-color:#34343b}
+.wck{grid-row:span 2;padding-top:1px;cursor:pointer}
+.wck input{appearance:none;-webkit-appearance:none;display:block;width:22px;height:22px;margin:0;border:2px solid #4a4a52;border-radius:50%;cursor:pointer;transition:background-color .15s,border-color .15s}
+.wck input:hover{border-color:var(--ok)}
+.wck input:checked{background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;border-color:var(--ok)}
+.wck input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.wtl{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-width:0;padding-top:1px}
+.wt{font-weight:650;font-size:16px;line-height:1.3;overflow-wrap:anywhere}
+.wy{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums}
+.inplex{background:rgba(63,185,80,.14);color:var(--ok);border:0;border-radius:20px;font:inherit;font-size:11.5px;font-weight:600;padding:2px 9px;cursor:pointer;align-self:center}
+.inplex:hover{background:rgba(63,185,80,.25)}
+.wnote{grid-column:2/4;display:block;width:100%;min-height:24px;margin-top:4px;resize:none;overflow:hidden;background:transparent;border:0;border-radius:6px;padding:3px 0;color:#c6c6cc;font:inherit;font-size:14px;line-height:1.45;outline:none}
+.wnote::placeholder{color:#55555d}
+.wnote:focus{background:rgba(255,255,255,.04);padding:3px 8px;margin-left:-8px;width:calc(100% + 8px)}
+.wacts{display:flex;align-items:center;gap:2px;margin:-4px -2px 0 0}
+.wacts a,.wacts button{display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border:0;border-radius:8px;background:none;color:var(--mut);font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.02em;text-decoration:none;cursor:pointer;white-space:nowrap}
+.wacts a:hover,.wacts button:hover{background:rgba(255,255,255,.07);color:var(--fg)}
+.wacts a:focus-visible,.wacts button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.wacts svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wacts .del:hover,.wacts .del.sure{color:#f85149}
+.wacts .del.sure{background:rgba(248,81,73,.12);font-size:12.5px;padding:0 10px}
+.wcard.done{background:transparent}
+.wcard.done .wt{color:var(--mut);text-decoration:line-through;text-decoration-color:rgba(154,154,162,.55)}
+.wcard.done .wnote{color:var(--mut)}
 
 /* Ficha de detalle */
 #det{max-width:880px;width:94%;max-height:90vh;padding:0;border:0;border-radius:14px;background:#141417;color:var(--fg);overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.7)}
@@ -178,15 +198,12 @@ html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%
   .tools{gap:8px 14px;padding-top:12px}
   #q{flex:1 0 100%;max-width:none}
   /* letra de 16px en las casillas: así el iPhone no hace zoom al tocarlas */
-.wnote,
-  #q,select,.panel textarea,.panel input[type=text],.panel input[type=password],.dwait input,.sc input{font-size:16px!important}
+  .wnote,.wadd input,#q,select,.panel textarea,.panel input[type=text],.panel input[type=password],.dwait input,.sc input{font-size:16px!important}
   .panel{width:94%;padding:20px}
   #det{width:96%;max-height:92vh;max-height:92dvh}
   main{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:22px 12px}
-  .witem{flex-wrap:wrap}
-  .witem .wchk{flex-basis:100%}
-  .witem .wt{white-space:normal}
-  .wnote{margin-left:-8px;width:calc(100% + 8px);max-width:calc(100% + 8px);border-color:var(--line)}
+  .wcard{gap:2px 10px;padding:12px 6px 10px 12px}
+  .wacts a,.wacts button{min-width:30px}
   .stats{margin-left:0;width:100%}
   .dwrap{grid-template-columns:1fr;padding:22px;gap:20px}
   .dposter{width:150px}
@@ -225,7 +242,7 @@ html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%
       <select id="wo" class="wl">
         <option value="added">Recientes</option><option value="title">A–Z</option><option value="plex">Ya en Plex primero</option>
       </select>
-      <button class="btn wl" id="wadd">+ Añadir</button>
+      <button class="btn wl" id="wadd" hidden>+ Añadir</button>
       <span class="stats" id="stats"></span>
     </div>
   </div>
@@ -430,16 +447,23 @@ function inLib(w,kind){
   return S[kind].find(it=>(t.includes(norm(it.title))||(it.orig&&t.includes(norm(it.orig))))
     &&(!w.year||!it.year||Math.abs(w.year-it.year)<=1));
 }
+const ICON={edit:'<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+  del:'<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13"/></svg>'};
 function witem(w,kind){
-  return `<div class="witem ${w.done?'done':''}" data-id="${esc(w.id)}">
-    <label class="wchk"><input type="checkbox" id="chk-${esc(w.id)}" data-a="done" ${w.done?'checked':''}><span class="wt">${esc(w.title)}${w.year?`<small>${w.year}</small>`:''}</span></label>
-    ${inLib(w,kind)?`<button class="inplex" data-a="plex" title="Abrir en tu biblioteca">✓ Ya en tu Plex</button>`:''}
-    <a href="${faUrl(w.title)}" target="_blank" rel="noopener">FilmAffinity ↗</a>
-    <button data-a="edit">Editar</button>
-    <button class="del" data-a="del" title="Quitar de la lista">×</button>
-    ${kind==='shows'?`<input type="text" class="wnote" id="note-${esc(w.id)}" value="${esc(w.note||'')}" placeholder="Notas: capítulos que tienes o te faltan" aria-label="Notas de ${esc(w.title)}">`:''}
-  </div>`;
+  const id=esc(w.id);
+  return `<article class="wcard ${w.done?'done':''}" data-id="${id}">
+    <label class="wck" title="${w.done?'Desmarcar':'Marcar'}"><input type="checkbox" id="chk-${id}" data-a="done" ${w.done?'checked':''} aria-label="Marcar ${esc(w.title)}"></label>
+    <div class="wtl"><span class="wt">${esc(w.title)}</span>${w.year?`<span class="wy">${w.year}</span>`:''}${inLib(w,kind)?'<button class="inplex" data-a="plex" title="Abrir en tu biblioteca">En tu Plex</button>':''}</div>
+    <div class="wacts">
+      <a href="${faUrl(w.title)}" target="_blank" rel="noopener" title="Buscar en FilmAffinity">FA ↗</a>
+      <button data-a="edit" title="Editar título" aria-label="Editar título">${ICON.edit}</button>
+      <button class="del" data-a="del" title="Quitar de la lista" aria-label="Quitar de la lista">${ICON.del}</button>
+    </div>
+    <textarea class="wnote" id="note-${id}" rows="1" placeholder="${kind==='shows'?'Nota: capítulos que tienes o te faltan…':'Añadir una nota…'}" aria-label="Nota de ${esc(w.title)}">${esc(w.note||'')}</textarea>
+  </article>`;
 }
+const fitNote=t=>{t.style.height='auto';t.style.height=t.scrollHeight+'px'};
+let wDoneOpen=false;
 // "Título (2024)" → {title, year}; quita viñetas y numeraciones de la nota
 function parseLine(line){
   line=line.replace(/^\s*(?:[-*•·]|\d+[.)])\s*/,'').trim();
@@ -447,19 +471,41 @@ function parseLine(line){
   return {title:(m?m[1]:line).trim(),year:m?+m[2]:0};
 }
 function renderWish(){
-  const kind=wkind(),all=S.wish[kind],q=norm($('q').value),o=$('wo').value;
+  const kind=wkind(),all=S.wish[kind],q=norm($('q').value),o=$('wo').value,pel=kind==='movies';
   const list=all.filter(w=>!q||norm(w.title+' '+(w.note||'')).includes(q));
   const sorters={added:(a,b)=>b.added-a.added,title:(a,b)=>a.title.localeCompare(b.title,'es'),
     plex:(a,b)=>!!inLib(b,kind)-!!inLib(a,kind)||b.added-a.added};
   list.sort(sorters[o]);
-  const nP=all.filter(w=>inLib(w,kind)).length;
-  const nD=all.filter(w=>w.done).length;
-  $('stats').textContent=all.length?`${list.length} ${list.length===1?"título":"títulos"}${nD?` · ${nD} marcados`:''}${nP?` · ${nP} ya en tu Plex`:''}`:'';
+  const todo=list.filter(w=>!w.done),done=list.filter(w=>w.done);
+  const nP=all.filter(w=>inLib(w,kind)).length,nD=all.filter(w=>w.done).length;
+  $('stats').textContent=all.length?`${all.length-nD} ${all.length-nD===1?'pendiente':'pendientes'}${nD?` · ${nD} ${nD===1?'marcado':'marcados'}`:''}${nP?` · ${nP} ya en tu Plex`:''}`:'';
+  const draft=$('wnew')?.value||'';
   $('grid').className='wlist';
-  $('grid').innerHTML=all.length?(list.map(w=>witem(w,kind)).join('')||'<div class="empty">Nada coincide con la búsqueda.</div>')
-    :`<div class="empty">Aún no tienes ${kind==='movies'?'películas':'series'} apuntadas.<br>Pulsa <b>+ Añadir</b> para apuntar una o pegar tu lista entera.</div>`;
+  $('grid').innerHTML=`
+    <div class="wadd"><input type="text" id="wnew" enterkeyhint="done" autocomplete="off" placeholder="Añadir ${pel?'una película':'una serie'}…" title="Puedes poner el año entre paréntesis: Anora (2024)" aria-label="Título nuevo"><button class="btn" id="wnewbtn">Añadir</button></div>
+    <button class="wpaste" id="wpaste">Pegar varios títulos desde tu nota</button>
+    ${!all.length?`<div class="empty" style="padding:60px 20px">Aún no tienes ${pel?'películas':'series'} apuntadas.<br>Escribe un título arriba y pulsa Añadir.</div>`
+      :!list.length?'<div class="empty" style="padding:60px 20px">Nada coincide con la búsqueda.</div>'
+      :`${todo.length?`<div class="wsec">Pendientes <b>${todo.length}</b></div><div class="wgroup">${todo.map(w=>witem(w,kind)).join('')}</div>`:''}
+        ${done.length?`<details class="wdone"${wDoneOpen||!todo.length?' open':''}><summary class="wsec">Marcados <b>${done.length}</b></summary><div class="wgroup">${done.map(w=>witem(w,kind)).join('')}</div></details>`:''}`}`;
+  $('wnew').value=draft;
+  $('grid').querySelectorAll('.wnote').forEach(fitNote);
 }
-
+function addTitles(text){
+  const kind=wkind(),have=new Set(S.wish[kind].map(w=>norm(w.title))),news=[];let dup=0;
+  for(const line of String(text).split('\n')){
+    const {title,year}=parseLine(line);if(!title)continue;
+    if(have.has(norm(title))){dup++;continue}
+    have.add(norm(title));news.push({id:uid(),added:Date.now()-news.length,title,year});
+  }
+  if(news.length){S.wish[kind].push(...news);save();}
+  return {n:news.length,dup};
+}
+function addFromBar(){
+  const inp=$('wnew'),r=addTitles(inp.value);
+  if(!r.n){if(r.dup){inp.select();$('stats').textContent='Ese título ya está en la lista.'}return}
+  inp.value='';render();$('wnew').focus();
+}
 const wmsg=t=>$('wmsg').textContent=t;
 let wEdit=null;
 function openW(w){
@@ -477,16 +523,11 @@ $('wsave').onclick=()=>{
     const {title,year}=parseLine($('wlist').value.split('\n')[0]);if(!title)return wmsg('Escribe el título.');
     Object.assign(wEdit,{title,year});save();render();return $('wdlg').close();
   }
-  const kind=wkind(),have=new Set(S.wish[kind].map(w=>norm(w.title))),news=[];let dup=0;
-  for(const line of $('wlist').value.split('\n')){
-    const {title,year}=parseLine(line);if(!title)continue;
-    if(have.has(norm(title))){dup++;continue}
-    have.add(norm(title));news.push({id:uid(),added:Date.now()-news.length,title,year});
-  }
-  if(!news.length)return wmsg(dup?'Ya estaba en la lista.':'Escribe al menos un título.');
-  S.wish[kind].push(...news);save();render();
-  if(!dup)return $('wdlg').close();
-  wmsg(`Añadidos ${news.length} (${dup} ya estaban).`);setTimeout(()=>$('wdlg').close(),1200);
+  const r=addTitles($('wlist').value);
+  if(!r.n)return wmsg(r.dup?'Ya estaba en la lista.':'Escribe al menos un título.');
+  render();
+  if(!r.dup)return $('wdlg').close();
+  wmsg(`Añadidos ${r.n} (${r.dup} ya estaban).`);setTimeout(()=>$('wdlg').close(),1200);
 };
 // Con un solo título, Enter añade; Mayús+Enter salta de línea para escribir más
 $('wlist').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!$('wlist').value.includes('\n')){e.preventDefault();$('wsave').click()}});
@@ -556,15 +597,18 @@ function syncIdx(){const i=VIEW.findIndex(x=>x.key===cur.key);if(i>=0)curIdx=i}
 
 $('grid').addEventListener('click',e=>{
   const t=e.target.closest('.tile');if(t)return openDet(+t.dataset.i);
-  const c=e.target.closest('.witem');if(!c)return;
+  if(e.target.closest('#wnewbtn'))return addFromBar();
+  if(e.target.closest('#wpaste'))return openW(null);
+  const c=e.target.closest('.wcard');if(!c)return;
   const kind=wkind(),w=S.wish[kind].find(x=>x.id===c.dataset.id);if(!w)return;
   const a=e.target.closest('[data-a]')?.dataset.a;
   if(a==='edit')return openW(w);
   if(a==='del'){ // primer toque pide confirmación; el segundo borra
     const btn=e.target.closest('[data-a]');
     if(btn.dataset.sure){S.wish[kind]=S.wish[kind].filter(x=>x!==w);save();render();return}
-    btn.dataset.sure='1';btn.textContent='¿Quitar?';btn.classList.add('sure');
-    setTimeout(()=>{if(btn.isConnected){delete btn.dataset.sure;btn.textContent='×';btn.classList.remove('sure')}},3000);
+    btn.dataset.sure='1';btn.classList.add('sure');
+    btn.innerHTML='¿Quitar?';
+    setTimeout(()=>{if(btn.isConnected){delete btn.dataset.sure;btn.innerHTML=ICON.del;btn.classList.remove('sure')}},3000);
     return;
   }
   if(a==='plex'){
@@ -572,16 +616,19 @@ $('grid').addEventListener('click',e=>{
     const i=VIEW.findIndex(x=>x.key===it.key);if(i>=0)openDet(i);
   }
 });
+$('grid').addEventListener('keydown',e=>{if(e.target.id==='wnew'&&e.key==='Enter'){e.preventDefault();addFromBar()}});
+$('grid').addEventListener('toggle',e=>{if(e.target.classList?.contains('wdone'))wDoneOpen=e.target.open},true);
 let noteT=0;
 $('grid').addEventListener('input',e=>{
   if(!e.target.classList.contains('wnote'))return;
-  const c=e.target.closest('.witem'),w=S.wish[wkind()].find(x=>x.id===c?.dataset.id);if(!w)return;
+  fitNote(e.target);
+  const c=e.target.closest('.wcard'),w=S.wish[wkind()].find(x=>x.id===c?.dataset.id);if(!w)return;
   const v=e.target.value.trim();if(v)w.note=v;else delete w.note;
   clearTimeout(noteT);noteT=setTimeout(save,600);
 });
 $('grid').addEventListener('change',e=>{
   if(e.target.dataset.a!=='done')return;
-  const c=e.target.closest('.witem'),w=S.wish[wkind()].find(x=>x.id===c?.dataset.id);if(!w)return;
+  const c=e.target.closest('.wcard'),w=S.wish[wkind()].find(x=>x.id===c?.dataset.id);if(!w)return;
   if(e.target.checked)w.done=true;else delete w.done;
   save();render();
 });
@@ -796,7 +843,7 @@ function saveLib(){
     .finally(()=>pending--);
 }
 function refresh(){
-  if(document.activeElement?.classList.contains('wnote'))return;
+  if(document.activeElement?.classList.contains('wnote')||document.activeElement?.id==='wnew')return;
   render();
   // Refresca la ficha abierta, salvo que estés escribiendo en ella
   if($('det').open&&cur&&!($('det').contains(document.activeElement)&&document.activeElement.tagName==='INPUT')){
