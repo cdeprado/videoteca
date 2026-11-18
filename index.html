@@ -22,6 +22,14 @@ h1 span{color:var(--acc)}
 .tsep{color:var(--mut);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding-left:22px;border-left:1px solid var(--line);line-height:22px}
 .hright{margin-left:auto;display:flex;gap:18px;align-items:center}
 .net{font-size:12.5px;white-space:nowrap}.net.ok{color:var(--ok)}.net.bad{color:#f85149}
+.upd{display:inline-flex;align-items:center;gap:7px;background:var(--soft);border:1px solid var(--line);color:var(--fg);border-radius:20px;padding:7px 14px 7px 11px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.upd:hover{border-color:#3a3a42}
+.upd:disabled{cursor:default;color:var(--mut)}
+.upd svg{width:17px;height:17px;fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.upd.busy svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.upd.busy svg{animation:none}}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;max-width:min(92vw,520px);background:#26262c;color:var(--fg);border:1px solid #34343b;border-radius:12px;padding:10px 16px;font-size:14px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 .link{background:none;border:0;color:var(--mut);font:inherit;font-size:14px;cursor:pointer}
 .link:hover{color:var(--fg)}
 .tools{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:16px 0 4px}
@@ -172,7 +180,7 @@ details.wdone>summary:hover{color:var(--fg)}
 .panel code{font-size:12px;color:#c4c4ca}
 .panel textarea,.panel input[type=text],.panel input[type=password]{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 11px;font:inherit;font-size:14px;margin-bottom:8px;outline:none;resize:vertical}
 .panel textarea:focus,.panel input:focus{border-color:#444}
-#paste,#faJson,#tok{font:12px ui-monospace,monospace}
+#tok{font:13px ui-monospace,monospace}
 .panel summary{cursor:pointer;color:var(--mut);font-size:13px;margin:14px 0 8px}
 .panel summary:hover{color:var(--fg)}
 .wrow{display:flex;gap:8px}
@@ -219,13 +227,13 @@ html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%
     <div class="top">
       <h1>Plex<span>Crix</span></h1>
       <div class="tabs">
-        <button class="tab on" data-t="movies">Películas<b id="cm"></b></button>
-        <button class="tab" data-t="shows">Series<b id="cs"></b></button>
+        <button class="tab on" data-t="shows">Series<b id="cs"></b></button>
+        <button class="tab" data-t="movies">Películas<b id="cm"></b></button>
         <span class="tsep">Por añadir</span>
-        <button class="tab" data-t="wmovies">Películas<b id="cwm"></b></button>
         <button class="tab" data-t="wshows">Series<b id="cws"></b></button>
+        <button class="tab" data-t="wmovies">Películas<b id="cwm"></b></button>
       </div>
-      <div class="hright"><span class="net" id="net" hidden></span><button class="link" id="cfg">Datos</button></div>
+      <div class="hright"><span class="net" id="net" hidden></span><button class="upd" id="upd" title="Traer de Plex lo último de tu biblioteca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg><span>Actualizar</span></button></div>
     </div>
     <div class="tools">
       <input type="search" id="q" placeholder="Buscar por título, actor o director">
@@ -264,35 +272,18 @@ html.nodlg dialog[open]{position:fixed;top:50%;left:50%;transform:translate(-50%
   <div class="foot"><button class="btn ghost" id="wcancel">Cancelar</button><button class="btn" id="wsave">Añadir</button></div>
 </dialog>
 
-<dialog id="dlg" class="panel">
-  <h2>Datos</h2>
-  <p id="where">Todo se guarda solo en este navegador.</p>
-  <h3>Cargar XML de Plex</h3>
-  <input type="file" id="files" accept=".xml,.txt,text/xml,application/xml,text/plain,text/html,*/*" multiple>
-  <p style="margin-top:10px">Para la lista de capítulos, carga también el XML de <code>/library/sections/N/all?type=4</code> de tu biblioteca de series.</p>
-  <p>o pega el contenido:</p>
-  <textarea id="paste" rows="2"></textarea>
-  <button class="btn" id="doPaste">Importar</button>
-  <div id="syncbox">
-  <h3>Sincronizar con Plex</h3>
-  <p>Opcional. También muestra las carátulas y carga los capítulos de las series. Si dejas la dirección vacía, se busca sola con el token (así se usa en el móvil).</p>
-  <input type="text" id="srv" placeholder="Dirección (opcional): http://192.168.1.X:32400">
-  <input type="password" id="tok" placeholder="X-Plex-Token">
-  <button class="btn" id="doSync">Sincronizar</button>
-  </div>
-
-  <h3>Notas de FilmAffinity</h3>
-  <p>JSON: {"Barbie (2023)": 6.3, "Klaus (2019)": 7.6}</p>
-  <textarea id="faJson" rows="2"></textarea>
-  <button class="btn" id="doFa">Importar notas</button>
-  <h3>Copia de seguridad</h3>
-  <p>Incluye tus notas, marcas de vistas, series en espera y las listas "Por añadir".</p>
-  <button class="btn ghost" id="exp">Descargar</button>
-  <label class="btn ghost" style="display:inline-block">Restaurar<input type="file" id="imp" accept=".json" hidden></label>
-  <button class="btn ghost" id="wipe">Borrar todo</button>
-  <div class="msg" id="msg"></div>
-  <div class="foot"><button class="btn" id="close">Cerrar</button></div>
+<dialog id="tokdlg" class="panel">
+  <h2>Conectar con Plex</h2>
+  <p>Pega tu token de Plex. Solo hace falta la primera vez; después basta con pulsar <b>Actualizar</b>.</p>
+  <input type="password" id="tok" placeholder="X-Plex-Token" autocomplete="off">
+  <details><summary>Dirección del servidor (opcional)</summary>
+    <p>Déjala vacía y se busca sola. En el ordenador también vale la de casa, por ejemplo <code>http://192.168.1.X:32400</code>.</p>
+    <input type="text" id="srv" placeholder="Se busca sola" autocomplete="off">
+  </details>
+  <div class="msg" id="tmsg"></div>
+  <div class="foot"><button class="btn ghost" id="tcancel">Cancelar</button><button class="btn" id="doSync">Conectar y actualizar</button></div>
 </dialog>
+<div class="toast" id="msg" role="status" hidden></div>
 
 <script>
 if(!(window.HTMLDialogElement&&HTMLDialogElement.prototype.showModal)){
@@ -314,7 +305,7 @@ try{EPS=JSON.parse(localStorage.getItem(LSE)||'{}')}catch(e){}
 function save(){if(SHARED)return push();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){alert('No se pudo guardar: '+e.message)}}
 // Los capítulos van aparte: si no caben en el navegador, se usan solo durante esta sesión.
 function saveEps(){if(SHARED)return;try{localStorage.setItem(LSE,JSON.stringify(EPS))}catch(e){}}
-let tab='movies',VIEW=[],cur=null,curIdx=0;
+let tab='shows',VIEW=[],cur=null,curIdx=0;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dec=s=>s.replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#(\d+);/g,(m,n)=>String.fromCharCode(n)).replace(/&amp;/g,'&');
@@ -360,7 +351,7 @@ function merge(out){
     EPS=out.eps;saveEps();
   }
   save();saveLib();render();
-  return `Importadas ${out.movies.length} películas, ${out.shows.length} series${n?` y ${n} capítulos`:''}.`;
+  return `Actualizado: ${out.shows.length} series${n?` (${n} capítulos)`:''} y ${out.movies.length} películas.`;
 }
 
 const isShow=it=>'eps' in it;
@@ -438,7 +429,7 @@ function render(){
   const nW=all.filter(waitOf).length,nN=all.filter(waitNew).length;
   $('stats').textContent=all.length?`${list.length} ${list.length===1?'título':'títulos'} · ${c.seen} vistos · ${c.run} a medias · ${c.pending} pendientes${nW?` · ${nW} en espera`:''}${nN?` · ${nN} con temporada nueva`:''}`:'';
   $('grid').innerHTML=all.length?(list.map(tile).join('')||'<div class="empty">Nada coincide con la búsqueda.</div>')
-    :'<div class="empty">Aún no hay nada aquí.<br>Pulsa <b>Datos</b> arriba a la derecha y carga tus XML de Plex.</div>';
+    :'<div class="empty">Aún no hay nada aquí.<br>Pulsa <b>Actualizar</b>, arriba a la derecha, para traer tu biblioteca de Plex.</div>';
 }
 
 /* ---------- Listas "Por añadir" ---------- */
@@ -536,8 +527,7 @@ $('wlist').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!$('w
 function epsHtml(it){
   const l=epsOf(it);
   if(!l||!l.length)return `<div class="deps"><div class="dh">Capítulos</div><p class="dnote">${
-    S.server&&S.token?'Pulsa <b>Sincronizar</b> en Datos para cargar la lista de capítulos.'
-    :'La lista de capítulos se carga al sincronizar con Plex, o con el XML de capítulos (en Datos).'}</p></div>`;
+'Pulsa <b>Actualizar</b> para cargar la lista de capítulos.'}</p></div>`;
   const by={};l.forEach(e=>(by[e.s]??=[]).push(e));
   const ss=Object.keys(by).map(Number).sort((a,b)=>(a||1e9)-(b||1e9)); // especiales al final
   let open=ss.find(s=>by[s].some(e=>!e.v));if(open===undefined)open=ss[0];
@@ -665,48 +655,12 @@ function setTab(t){
 }
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
 ['q','f','g','o','wo'].forEach(id=>$(id).addEventListener('input',render));
-const msg=t=>$('msg').textContent=t;
-$('cfg').onclick=()=>{$('srv').value=S.server;$('tok').value=S.token;msg('');$('dlg').showModal()};
-$('close').onclick=()=>$('dlg').close();
-/* Lectura tolerante: en el móvil el XML suele llegar en otra codificación o guardado como página web */
-async function readText(f){
-  const b=new Uint8Array(await f.arrayBuffer());
-  let enc='utf-8';
-  if(b[0]===0xFF&&b[1]===0xFE)enc='utf-16le';
-  else if(b[0]===0xFE&&b[1]===0xFF)enc='utf-16be';
-  else{let z=0;const n=Math.min(b.length,2000);for(let i=0;i<n;i++)if(!b[i])z++;
-    if(z>n/4)enc=b[0]===0?'utf-16be':'utf-16le'}
-  return new TextDecoder(enc).decode(b);
+let msgT=0;
+function msg(t,keep){
+  const el=$('msg');el.textContent=t||'';el.hidden=!t;
+  if($('tokdlg').open)$('tmsg').textContent=t||'';
+  clearTimeout(msgT);if(t&&!keep)msgT=setTimeout(()=>{el.hidden=true},7000);
 }
-function cleanXml(t){
-  t=String(t||'').replace(/^\uFEFF/,'');
-  if(!/<(Video|Directory)\s/.test(t)&&/&lt;\s*(Video|Directory)\s/.test(t))
-    t=new DOMParser().parseFromString(t,'text/html').body.textContent||''; // XML guardado como página web
-  return t;
-}
-function why(name,t){
-  const snip=String(t||'').replace(/\s+/g,' ').trim().slice(0,90);
-  if(!snip)return `«${name}» está vacío o no se ha podido leer.`;
-  if(/<MediaContainer[^>]*size="0"/.test(t))return `«${name}» es un XML de Plex, pero viene vacío (size="0"). Revisa el número de biblioteca o el token de la dirección.`;
-  if(/<MediaContainer/.test(t))return `«${name}» es un XML de Plex, pero no trae películas, series ni capítulos.`;
-  return `En «${name}» no hay películas ni series de Plex. Empieza así: «${snip}…»`;
-}
-function importTexts(items){
-  const acc={movies:[],shows:[],eps:{}},bad=[];
-  for(const[name,raw]of items){
-    const t=cleanXml(raw),o=parse(t);
-    if(!o.movies.length&&!o.shows.length&&!Object.keys(o.eps).length)bad.push(why(name,t));
-    addTo(acc,o);
-  }
-  const ok=acc.movies.length||acc.shows.length||Object.keys(acc.eps).length;
-  msg((ok?merge(acc)+' ':'')+bad.join(' '));
-}
-$('files').onchange=async e=>{
-  const items=[];
-  for(const f of e.target.files){try{items.push([f.name,await readText(f)])}catch(err){items.push([f.name,''])}}
-  importTexts(items);e.target.value='';
-};
-$('doPaste').onclick=()=>{importTexts([['lo pegado',$('paste').value]]);$('paste').value=''};
 /* Busca en plex.tv la dirección segura (https://…plex.direct) de tu servidor.
    Hace falta cuando la página se abre desde una web https (por ejemplo en el móvil). */
 async function plexDiscover(token){
@@ -728,67 +682,56 @@ async function plexDiscover(token){
   }
   return null;
 }
-$('doSync').onclick=async()=>{
-  S.token=$('tok').value.trim();
-  let srv=$('srv').value.trim().replace(/\/+$/,'');
-  if(!S.token)return msg('Falta el token de Plex.');
+function askToken(t){
+  $('tok').value=S.token;$('srv').value=/^https:.*plex\.direct/i.test(S.server)?'':S.server;
+  $('tmsg').textContent=t||'';$('tokdlg').showModal();$('tok').focus();
+}
+$('tcancel').onclick=()=>$('tokdlg').close();
+$('doSync').onclick=()=>{
+  const t=$('tok').value.trim();if(!t)return $('tmsg').textContent='Pega tu token de Plex.';
+  S.token=t;S.server=$('srv').value.trim().replace(/\/+$/,'');save();
+  $('tokdlg').close();runSync();
+};
+$('tok').addEventListener('keydown',e=>{if(e.key==='Enter')$('doSync').click()});
+$('upd').onclick=()=>S.token?runSync():askToken();
+let syncing=false;
+async function runSync(){
+  if(syncing)return;syncing=true;
+  const b=$('upd');b.disabled=true;b.classList.add('busy');b.lastElementChild.textContent='Actualizando…';
+  try{await doSync()}finally{syncing=false;b.disabled=false;b.classList.remove('busy');b.lastElementChild.textContent='Actualizar'}
+}
+async function doSync(){
+  let srv=S.server;
   if(!srv||(location.protocol==='https:'&&!/^https:/i.test(srv))){
-    msg('Buscando tu servidor Plex…');
+    msg('Buscando tu servidor Plex…',true);
     try{
       const f=await plexDiscover(S.token);
-      if(!f)return msg('No se ha podido conectar con tu Plex por la dirección segura. Comprueba que estás en el wifi de casa y que en Plex → Ajustes → Red las conexiones seguras están en «Preferidas».');
-      srv=f.uri;S.token=f.token;$('srv').value=srv;$('tok').value=S.token;
-      msg(`Encontrado «${f.name}»${f.relay?' (por el relé de Plex, irá algo más lento)':''}.`);
-    }catch(e){return msg(e.message==='token'?'Plex no acepta ese token. Revísalo.':'No se pudo contactar con plex.tv ('+e.message+').')}
+      if(!f)return msg('No se ha podido conectar con tu Plex. Comprueba que estás en el wifi de casa y que en Plex → Ajustes → Red las conexiones seguras están en «Preferidas».');
+      srv=f.uri;S.token=f.token;
+    }catch(e){
+      if(e.message==='token'){msg('');return askToken('Plex no acepta ese token. Revísalo.')}
+      return msg('No se pudo contactar con plex.tv ('+e.message+'). Revisa la conexión a internet.');
+    }
   }
   S.server=srv;save();
-  msg('Conectando con Plex…');
+  msg('Conectando con Plex…',true);
   try{
     const get=async p=>{const r=await fetch(S.server+p+(p.includes('?')?'&':'?')+'X-Plex-Token='+encodeURIComponent(S.token),{headers:{Accept:'application/xml'}});if(!r.ok)throw new Error('HTTP '+r.status);return r.text()};
     const secs=[...(await get('/library/sections')).matchAll(/<Directory\s([\s\S]*?")\s*\/?>/g)].map(x=>attrs(x[1])).filter(d=>d.type==='movie'||d.type==='show');
     const acc={movies:[],shows:[],eps:{}};
     for(const s of secs){
-      msg(`Leyendo «${s.title||s.key}»…`);
+      msg(`Leyendo «${s.title||s.key}»…`,true);
       addTo(acc,parse(await get(`/library/sections/${s.key}/all`)));
       if(s.type==='show')addTo(acc,parse(await get(`/library/sections/${s.key}/all?type=4`))); // todos los capítulos
     }
     msg(merge(acc));
-  }catch(err){msg('No se pudo conectar ('+err.message+'). Revisa la dirección y el token, o carga los XML a mano.')}
-};
-$('doFa').onclick=()=>{
-  try{
-    const obj=JSON.parse($('faJson').value),idx={};let n=0;
-    [...S.movies,...S.shows].forEach(i=>{idx[`${i.title} (${i.year})`.toLowerCase()]=i.key;idx[i.title.toLowerCase()]??=i.key});
-    for(const[k,v]of Object.entries(obj)){const key=idx[k.toLowerCase()];if(key&&!isNaN(v)){S.fa[key]=+v;n++}}
-    save();render();msg(`${n} notas importadas.`);
-  }catch(e){msg('El JSON no es válido.')}
-};
-$('exp').onclick=async()=>{
-  const data=JSON.stringify({fa:S.fa,seen:S.seen,wait:S.wait,wish:S.wish},null,1),filename='videoteca-copia.json';
-  const dl=window.claude?.use?await window.claude.use('downloads').catch(()=>null):null;
-  if(dl){
-    try{await dl.save({filename,data});msg('Copia descargada.')}
-    catch(e){msg(e?.code==='declined'?'No se ha descargado la copia.':'No se puede descargar la copia desde aquí.')}
-    return;
+  }catch(err){
+    if(/HTTP 401/.test(err.message)){msg('');return askToken('Plex no acepta ese token. Revísalo.')}
+    // si falla una dirección guardada, a la próxima se vuelve a buscar
+    if(location.protocol==='https:'||/plex\.direct/.test(S.server)){S.server='';save()}
+    msg('No se pudo conectar con Plex ('+err.message+'). Comprueba que estás en el wifi de casa y vuelve a pulsar Actualizar.');
   }
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));
-  a.download=filename;a.click();
-};
-$('imp').onchange=async e=>{try{
-  const o=JSON.parse(await e.target.files[0].text());
-  Object.assign(S.fa,o.fa||{});Object.assign(S.seen,o.seen||{});Object.assign(S.wait,o.wait||{});
-  for(const k of ['movies','shows']){const ids=new Set(S.wish[k].map(w=>w.id));(o.wish?.[k]||[]).forEach(w=>{if(!ids.has(w.id))S.wish[k].push(w)})}
-  save();render();msg('Copia restaurada.');
-}catch(err){msg('Archivo no válido.')}};
-let wipeT=0;
-$('wipe').onclick=()=>{
-  const b=$('wipe');
-  if(!b.dataset.sure){ // primer toque pide confirmación
-    b.dataset.sure='1';b.textContent=SHARED?'Pulsa otra vez: se borra para todos':'Pulsa otra vez para borrar todo';
-    clearTimeout(wipeT);wipeT=setTimeout(()=>{delete b.dataset.sure;b.textContent='Borrar todo'},4000);return;
-  }
-  clearTimeout(wipeT);delete b.dataset.sure;b.textContent='Borrar todo';
-  {S=blank();EPS={};save();saveLib();try{localStorage.removeItem(LSE)}catch(e){}render();msg('Borrado.')}};
+}
 /* ---------- Modo compartido ----------
    Si la página se abre desde el servidor de casa (servidor-videoteca.py), los datos se guardan allí
    y todos ven los cambios de los demás. Abierta como archivo, todo sigue guardándose en este navegador. */
@@ -873,7 +816,6 @@ async function initShared(){
   try{await api('rev')}catch(e){return} // no hay servidor: modo local
   SHARED=true;S=blank();EPS={};SNAP=flat();
   $('net').hidden=false;
-  $('where').textContent='Los datos se guardan en el ordenador de casa y los ve todo el que abra esta página.';
   await poll();
   setInterval(poll,4000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
